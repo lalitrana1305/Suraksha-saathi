@@ -193,7 +193,7 @@ export function stepRescueFleet(
 
     if (!currNode || !nextNode) {
       // Reached destination or single node
-      if (u.status === 'dispatched') {
+      if (u.status === 'dispatched' || u.status === 'on_scene') {
         u.status = 'on_scene';
         u.patientsCarried = Math.min(u.maxCapacity, 3);
         u.logMessage = `🚑 ${u.callSign} ON SCENE at Node ${u.currentNodeId}. Stabilizing and loading 3 evacuees.`;
@@ -235,17 +235,8 @@ export function stepRescueFleet(
       u.progress = 0;
       u.routeIndex += 1;
 
-      if (u.routeIndex >= u.routeNodeIds.length - 1) {
-        // Leg complete
-        if (u.status === 'dispatched') {
-          u.status = 'on_scene';
-          u.patientsCarried = Math.min(u.maxCapacity, 3);
-          u.logMessage = `🚑 ${u.callSign} reached emergency incident scene at Node ${u.currentNodeId}. Administering trauma triage.`;
-        } else if (u.status === 'transporting') {
-          u.status = 'idle';
-          u.logMessage = `✓ ${u.callSign} patient transfer complete at ${u.assignedShelterId}. Ready for next assignment.`;
-        }
-      }
+      // Leg completion (arrival on scene / patient delivery) is handled on the next step
+      // by the end-of-route branch above, so units never stall in 'on_scene'.
     } else {
       u.currentX = currNode.position.x + (nextNode.position.x - currNode.position.x) * u.progress;
       u.currentY = currNode.position.y + (nextNode.position.y - currNode.position.y) * u.progress;
